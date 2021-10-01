@@ -2,9 +2,11 @@ package com.dssd.grupo15.backend;
 
 import com.dssd.grupo15.backend.model.Customer;
 import com.dssd.grupo15.backend.repository.CustomerRepository;
+import com.dssd.grupo15.backend.service.FilesStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -12,10 +14,14 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.event.EventListener;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 @SpringBootApplication
-public class BackendApplication {
+public class BackendApplication implements CommandLineRunner {
+
+	@Resource
+	FilesStorageService storageService;
 
 	private static final Logger logger = LoggerFactory.getLogger(BackendApplication.class);
 
@@ -26,6 +32,12 @@ public class BackendApplication {
 	// TODO: remover
 	@Autowired
 	private CustomerRepository repository;
+
+	@Override
+	public void run(String... arg) throws Exception {
+		storageService.deleteAll();
+		storageService.init();
+	}
 
 	// TODO: remover
 	@EventListener(ApplicationReadyEvent.class)
