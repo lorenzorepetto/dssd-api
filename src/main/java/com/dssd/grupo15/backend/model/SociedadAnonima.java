@@ -11,6 +11,9 @@ public class SociedadAnonima {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "process_id", nullable = false)
+    private String processId;
+
     @Column(name = "nombre", nullable = false)
     private String nombre;
 
@@ -55,7 +58,8 @@ public class SociedadAnonima {
     public SociedadAnonima() {
     }
 
-    public SociedadAnonima(String nombre, LocalDate fechaCreacion, String domicilioLegal, String domicilioReal, String email, List<Status> status, Socio apoderado, List<Socio> socios, File estatuto, List<Exportacion> exportaciones) {
+    public SociedadAnonima(String processId, String nombre, LocalDate fechaCreacion, String domicilioLegal, String domicilioReal, String email, List<Status> status, Socio apoderado, List<Socio> socios, File estatuto, List<Exportacion> exportaciones) {
+        this.processId = processId;
         this.nombre = nombre;
         this.fechaCreacion = fechaCreacion;
         this.domicilioLegal = domicilioLegal;
@@ -74,6 +78,14 @@ public class SociedadAnonima {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getProcessId() {
+        return processId;
+    }
+
+    public void setProcessId(String processId) {
+        this.processId = processId;
     }
 
     public String getNombre() {
@@ -170,6 +182,11 @@ public class SociedadAnonima {
 
         public Builder id(Long id) {
             sociedadAnonima.setId(id);
+            return this;
+        }
+
+        public Builder processId(String processId) {
+            sociedadAnonima.setProcessId(processId);
             return this;
         }
 
