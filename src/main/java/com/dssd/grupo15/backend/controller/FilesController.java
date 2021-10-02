@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Controller
-//@CrossOrigin("http://localhost:8081")
 public class FilesController extends GenericController {
 
     @Autowired
