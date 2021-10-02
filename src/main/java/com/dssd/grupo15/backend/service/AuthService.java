@@ -16,7 +16,7 @@ import java.util.List;
 @Service
 public class AuthService {
 
-    private static final String LOGIN_URL = "http://localhost:1030/bonita/loginservice";
+    private static final String LOGIN_URL = "http://localhost:8080/bonita/loginservice";
     private static final String TOKEN_COOKIE = "X-Bonita-API-Token";
     private final RestTemplate restTemplate;
 

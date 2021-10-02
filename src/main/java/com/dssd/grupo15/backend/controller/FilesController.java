@@ -1,6 +1,6 @@
 package com.dssd.grupo15.backend.controller;
 
-import com.dssd.grupo15.backend.model.FileInfo;
+import com.dssd.grupo15.backend.model.File;
 import com.dssd.grupo15.backend.service.FilesStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -37,16 +37,16 @@ public class FilesController extends GenericController {
     }
 
     @GetMapping("/files")
-    public ResponseEntity<List<FileInfo>> getListFiles() {
-        List<FileInfo> fileInfos = storageService.loadAll().map(path -> {
+    public ResponseEntity<List<File>> getListFiles() {
+        List<File> files = storageService.loadAll().map(path -> {
             String filename = path.getFileName().toString();
             String url = MvcUriComponentsBuilder
                     .fromMethodName(FilesController.class, "getFile", path.getFileName().toString()).build().toString();
 
-            return new FileInfo(filename, url);
+            return new File(filename, url);
         }).collect(Collectors.toList());
 
-        return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
+        return ResponseEntity.status(HttpStatus.OK).body(files);
     }
 
     @GetMapping("/files/{filename:.+}")
