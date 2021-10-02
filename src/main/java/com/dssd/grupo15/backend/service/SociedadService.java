@@ -27,6 +27,7 @@ public class SociedadService {
     private final RestTemplate restTemplate;
 
     private final PaisService paisService;
+    private final FilesStorageService filesStorageService;
     private final SocioRepository socioRepository;
     private final SociedadAnonimaRepository sociedadAnonimaRepository;
     private final StatusRepository statusRepository;
@@ -34,11 +35,13 @@ public class SociedadService {
 
     @Autowired
     public SociedadService(PaisService paisService,
+                           FilesStorageService filesStorageService,
                            SocioRepository socioRepository,
                            SociedadAnonimaRepository sociedadAnonimaRepository,
                            StatusRepository statusRepository,
                            ExportacionRepository exportacionRepository) {
         this.paisService = paisService;
+        this.filesStorageService = filesStorageService;
         this.socioRepository = socioRepository;
         this.sociedadAnonimaRepository = sociedadAnonimaRepository;
         this.statusRepository = statusRepository;
@@ -47,18 +50,19 @@ public class SociedadService {
     }
 
     public Object createSociedad(SociedadAnonimaDTO sociedadAnonimaDTO, MultipartFile file, String token) {
-
-        this.createSociedadFromDTO(sociedadAnonimaDTO);
+        // TODO: agregar validacion por nombre
+        this.createSociedadFromDTO(sociedadAnonimaDTO, this.filesStorageService.save(file));
         return this.sociedadAnonimaRepository.findByNombre(sociedadAnonimaDTO.getNombre());
     }
 
-    private void createSociedadFromDTO(SociedadAnonimaDTO sociedadAnonimaDTO) {
+    private void createSociedadFromDTO(SociedadAnonimaDTO sociedadAnonimaDTO, File file) {
         SociedadAnonima sociedadAnonima = new SociedadAnonima();
         sociedadAnonima.setNombre(sociedadAnonimaDTO.getNombre());
         sociedadAnonima.setDomicilioLegal(sociedadAnonimaDTO.getDomicilioLegal());
         sociedadAnonima.setDomicilioReal(sociedadAnonimaDTO.getDomicilioReal());
         sociedadAnonima.setFechaCreacion(sociedadAnonimaDTO.getFechaCreacion());
         sociedadAnonima.setEmail(sociedadAnonimaDTO.getEmail());
+        sociedadAnonima.setEstatuto(file);
         sociedadAnonima.setProcessId("id de proceso"); // TODO: arreglar
 
         List<Socio> socios = new ArrayList<>();
