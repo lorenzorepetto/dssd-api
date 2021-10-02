@@ -1,5 +1,7 @@
 package com.dssd.grupo15.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
@@ -59,5 +61,37 @@ public class Status {
 
     public void setDateCreated(LocalDateTime dateCreated) {
         this.dateCreated = dateCreated;
+    }
+
+
+    public static final class Builder {
+        private Status status;
+
+        private Builder() {
+            status = new Status();
+        }
+
+        public static Builder aStatus() {
+            return new Builder();
+        }
+
+        public Builder status(String status) {
+            this.status.setStatus(status);
+            return this;
+        }
+
+        public Builder sociedadAnonima(SociedadAnonima sociedadAnonima) {
+            status.setSociedadAnonima(sociedadAnonima);
+            return this;
+        }
+
+        public Builder dateCreated(LocalDateTime dateCreated) {
+            status.setDateCreated(dateCreated);
+            return this;
+        }
+
+        public Status build() {
+            return status;
+        }
     }
 }

@@ -1,5 +1,7 @@
 package com.dssd.grupo15.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.List;
@@ -33,6 +35,7 @@ public class SociedadAnonima {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
+    @JsonIgnoreProperties("sociedadAnonima")
     private List<Status> status;
 
     @OneToOne(cascade = CascadeType.ALL)
@@ -53,6 +56,7 @@ public class SociedadAnonima {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
+    @JsonIgnoreProperties("sociedadAnonima")
     private List<Exportacion> exportaciones;
 
     public SociedadAnonima() {
