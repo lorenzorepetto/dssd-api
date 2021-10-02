@@ -17,9 +17,8 @@ public class Exportacion {
     @JoinColumn(name="pais_id", nullable=false)
     private Pais pais;
 
-    @ManyToOne
-    @JoinColumn(name="estado_id")
-    private Estado estado;
+    @Column()
+    private String estado;
 
     public Exportacion() {
     }
@@ -29,7 +28,7 @@ public class Exportacion {
         this.pais = pais;
     }
 
-    public Exportacion(SociedadAnonima sociedadAnonima, Pais pais, Estado estado) {
+    public Exportacion(SociedadAnonima sociedadAnonima, Pais pais, String estado) {
         this.sociedadAnonima = sociedadAnonima;
         this.pais = pais;
         this.estado = estado;
@@ -59,11 +58,11 @@ public class Exportacion {
         this.pais = pais;
     }
 
-    public Estado getEstado() {
+    public String getEstado() {
         return estado;
     }
 
-    public void setEstado(Estado estado) {
+    public void setEstado(String estado) {
         this.estado = estado;
     }
 }
