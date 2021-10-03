@@ -1,16 +1,21 @@
 package com.dssd.grupo15.backend.service;
 
+import com.dssd.grupo15.backend.dto.common.StatusCodeDTO;
 import com.dssd.grupo15.backend.dto.rest.request.EstadoDTO;
 import com.dssd.grupo15.backend.dto.rest.request.PaisDTO;
 import com.dssd.grupo15.backend.dto.rest.request.SociedadAnonimaDTO;
 import com.dssd.grupo15.backend.dto.rest.request.SocioDTO;
+import com.dssd.grupo15.backend.exception.AlreadyExistsException;
 import com.dssd.grupo15.backend.model.*;
+import com.dssd.grupo15.backend.model.enums.StatusEnum;
 import com.dssd.grupo15.backend.repository.ExportacionRepository;
 import com.dssd.grupo15.backend.repository.SociedadAnonimaRepository;
 import com.dssd.grupo15.backend.repository.SocioRepository;
 import com.dssd.grupo15.backend.repository.StatusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,11 +27,11 @@ import java.util.List;
 @Service
 public class SociedadService {
 
-    private static final String CREATE_URL = "http://localhost:8080/bonita/API/bpm/case";
-    private static final String TOKEN_COOKIE = "X-Bonita-API-Token";
+    private static final String PROCESS_NAME = "Pool"; //TODO: cambiar por el real
     private final RestTemplate restTemplate;
 
     private final PaisService paisService;
+    private final BonitaApiService bonitaApiService;
     private final FilesStorageService filesStorageService;
     private final SocioRepository socioRepository;
     private final SociedadAnonimaRepository sociedadAnonimaRepository;
@@ -35,12 +40,14 @@ public class SociedadService {
 
     @Autowired
     public SociedadService(PaisService paisService,
+                           BonitaApiService bonitaApiService,
                            FilesStorageService filesStorageService,
                            SocioRepository socioRepository,
                            SociedadAnonimaRepository sociedadAnonimaRepository,
                            StatusRepository statusRepository,
                            ExportacionRepository exportacionRepository) {
         this.paisService = paisService;
+        this.bonitaApiService = bonitaApiService;
         this.filesStorageService = filesStorageService;
         this.socioRepository = socioRepository;
         this.sociedadAnonimaRepository = sociedadAnonimaRepository;
@@ -49,22 +56,33 @@ public class SociedadService {
         this.restTemplate = new RestTemplate();
     }
 
-    public Object createSociedad(SociedadAnonimaDTO sociedadAnonimaDTO, MultipartFile file, String token) {
-        // TODO: agregar validacion por nombre
-        this.createSociedadFromDTO(sociedadAnonimaDTO, this.filesStorageService.save(file));
-        return this.sociedadAnonimaRepository.findByNombre(sociedadAnonimaDTO.getNombre());
+    @Transactional
+    public Object createSociedad(SociedadAnonimaDTO sociedadAnonimaDTO, MultipartFile file, String token, String sessionId) throws AlreadyExistsException {
+        if (this.sociedadAnonimaRepository.findByNombre(sociedadAnonimaDTO.getNombre()).isPresent()) {
+            throw new AlreadyExistsException(StatusCodeDTO.Builder.aStatusCodeDTO()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .message(String.format("Sociedad with nombre %s already exists.", sociedadAnonimaDTO.getNombre()))
+                    .build());
+        }
+        String processId = this.bonitaApiService.initBonitaProcess(PROCESS_NAME, token, sessionId);
+
+        File savedFile = this.filesStorageService.save(file, sociedadAnonimaDTO);
+        return this.createAndSaveSociedad(sociedadAnonimaDTO, savedFile, processId);
     }
 
-    private void createSociedadFromDTO(SociedadAnonimaDTO sociedadAnonimaDTO, File file) {
+    private SociedadAnonima createAndSaveSociedad(SociedadAnonimaDTO sociedadAnonimaDTO, File file, String processId) {
         SociedadAnonima sociedadAnonima = new SociedadAnonima();
         sociedadAnonima.setNombre(sociedadAnonimaDTO.getNombre());
         sociedadAnonima.setDomicilioLegal(sociedadAnonimaDTO.getDomicilioLegal());
         sociedadAnonima.setDomicilioReal(sociedadAnonimaDTO.getDomicilioReal());
         sociedadAnonima.setFechaCreacion(sociedadAnonimaDTO.getFechaCreacion());
         sociedadAnonima.setEmail(sociedadAnonimaDTO.getEmail());
-        sociedadAnonima.setEstatuto(file);
-        sociedadAnonima.setProcessId("id de proceso"); // TODO: arreglar
 
+        // File y ProcessId
+        sociedadAnonima.setEstatuto(file);
+        sociedadAnonima.setProcessId(processId);
+
+        // Socios
         List<Socio> socios = new ArrayList<>();
         for (SocioDTO socioDTO: sociedadAnonimaDTO.getSocios()) {
             socios.add(this.socioRepository.save(new Socio(socioDTO.getNombre(),
@@ -81,7 +99,7 @@ public class SociedadService {
         // Status
         List<Status> statusList = new ArrayList<>();
         statusList.add(this.statusRepository.save(Status.Builder.aStatus()
-                            .status("NEW")
+                            .status(StatusEnum.NEW.name())
                             .dateCreated(LocalDateTime.now())
                             .sociedadAnonima(newSociedad).build()));
         newSociedad.setStatus(statusList);
@@ -100,6 +118,6 @@ public class SociedadService {
         }
         newSociedad.setExportaciones(exportaciones);
 
-        this.sociedadAnonimaRepository.save(newSociedad);
+        return this.sociedadAnonimaRepository.save(newSociedad);
     }
 }

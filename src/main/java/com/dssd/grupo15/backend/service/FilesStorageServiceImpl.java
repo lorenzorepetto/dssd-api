@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 import com.dssd.grupo15.backend.controller.SociedadController;
+import com.dssd.grupo15.backend.dto.rest.request.SociedadAnonimaDTO;
 import com.dssd.grupo15.backend.model.File;
 import com.dssd.grupo15.backend.repository.FileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,15 +40,20 @@ public class FilesStorageServiceImpl implements FilesStorageService {
     }
 
     @Override
-    public File save(MultipartFile file) {
+    public File save(MultipartFile file, SociedadAnonimaDTO sociedadAnonimaDTO) {
         try {
-            Files.copy(file.getInputStream(), this.root.resolve(file.getOriginalFilename()));
+            String fileUrl = String.format("%s_%s_estatuto.%s",
+                    sociedadAnonimaDTO.getNombre(),
+                    sociedadAnonimaDTO.getFechaCreacion().toString().replace("-", ""),
+                    file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1));
+
+            Files.copy(file.getInputStream(), this.root.resolve(fileUrl));
             File newFile = new File();
             newFile.setName(file.getOriginalFilename());
             String url = MvcUriComponentsBuilder.fromController(SociedadController.class).build().toString()
                     .concat(root.toString())
                     .concat("/")
-                    .concat(newFile.getName());
+                    .concat(fileUrl);
             newFile.setUrl(url);
             return this.fileRepository.save(newFile);
         } catch (Exception e) {
