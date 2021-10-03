@@ -9,10 +9,13 @@ services:
     depends_on:
       - db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/solicitations
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/sociedades
       - SPRING_DATASOURCE_USERNAME=compose-postgres
       - SPRING_DATASOURCE_PASSWORD=compose-postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - BONITA_BASE_URL=http://host.docker.internal:8080
+    ports:
+      - "8081:8081"
 
   db:
     image: 'postgres:13.1-alpine'
@@ -20,7 +23,7 @@ services:
     environment:
       - POSTGRES_USER=compose-postgres
       - POSTGRES_PASSWORD=compose-postgres
-      - POSTGRES_DB=solicitations
+      - POSTGRES_DB=sociedades
     ports:
       - "5432:5432"
 
