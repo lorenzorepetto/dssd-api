@@ -7,6 +7,7 @@ import com.dssd.grupo15.backend.dto.rest.bonita.ProcessDefinitionInfoDTO;
 import com.dssd.grupo15.backend.dto.rest.request.CredentialsDTO;
 import com.dssd.grupo15.backend.dto.rest.response.TokenDTO;
 import com.dssd.grupo15.backend.exception.InvalidCredentialsException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -22,11 +23,16 @@ import java.util.List;
 @Service
 public class BonitaApiService {
 
-    private static final String LOGIN_URL = "http://localhost:8080/bonita/loginservice";
-    private static final String PROCESS_DEFINITION_INFO_URL = "http://localhost:8080/bonita/API/bpm/process";
-    private static final String INIT_PROCESS_URL = "http://localhost:8080/bonita/API/bpm/case";
-    private static final String BONITA_API_TOKEN = "X-Bonita-API-Token";
-    private static final String SESSION_ID_COOKIE = "JSESSIONID";
+    @Value("${bonita.login.url}")
+    private String LOGIN_URL;
+    @Value("${bonita.process.definition.info.url}")
+    private String PROCESS_DEFINITION_INFO_URL;
+    @Value("${bonita.process.init.url}")
+    private String INIT_PROCESS_URL;
+    @Value("${bonita.api.token}")
+    private String BONITA_API_TOKEN;
+    @Value("${bonita.session.cookie}")
+    private String SESSION_ID_COOKIE;
 
     private final RestTemplate restTemplate;
 
