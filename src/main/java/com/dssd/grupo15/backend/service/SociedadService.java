@@ -6,6 +6,7 @@ import com.dssd.grupo15.backend.dto.rest.request.PaisDTO;
 import com.dssd.grupo15.backend.dto.rest.request.SociedadAnonimaDTO;
 import com.dssd.grupo15.backend.dto.rest.request.SocioDTO;
 import com.dssd.grupo15.backend.exception.AlreadyExistsException;
+import com.dssd.grupo15.backend.exception.common.GenericException;
 import com.dssd.grupo15.backend.model.*;
 import com.dssd.grupo15.backend.model.enums.StatusEnum;
 import com.dssd.grupo15.backend.repository.ExportacionRepository;
@@ -57,7 +58,7 @@ public class SociedadService {
     }
 
     @Transactional
-    public Object createSociedad(SociedadAnonimaDTO sociedadAnonimaDTO, MultipartFile file, String token, String sessionId) throws AlreadyExistsException {
+    public Object createSociedad(SociedadAnonimaDTO sociedadAnonimaDTO, MultipartFile file, String token, String sessionId) throws GenericException {
         if (this.sociedadAnonimaRepository.findByNombre(sociedadAnonimaDTO.getNombre()).isPresent()) {
             throw new AlreadyExistsException(StatusCodeDTO.Builder.aStatusCodeDTO()
                     .status(HttpStatus.BAD_REQUEST)

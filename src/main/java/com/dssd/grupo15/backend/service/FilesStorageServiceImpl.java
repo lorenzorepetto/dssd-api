@@ -8,12 +8,15 @@ import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 import com.dssd.grupo15.backend.controller.SociedadController;
+import com.dssd.grupo15.backend.dto.common.StatusCodeDTO;
 import com.dssd.grupo15.backend.dto.rest.request.SociedadAnonimaDTO;
+import com.dssd.grupo15.backend.exception.FileStorageException;
 import com.dssd.grupo15.backend.model.File;
 import com.dssd.grupo15.backend.repository.FileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,7 +43,7 @@ public class FilesStorageServiceImpl implements FilesStorageService {
     }
 
     @Override
-    public File save(MultipartFile file, SociedadAnonimaDTO sociedadAnonimaDTO) {
+    public File save(MultipartFile file, SociedadAnonimaDTO sociedadAnonimaDTO) throws FileStorageException {
         try {
             String fileUrl = String.format("%s_%s_estatuto.%s",
                     sociedadAnonimaDTO.getNombre(),
@@ -57,7 +60,10 @@ public class FilesStorageServiceImpl implements FilesStorageService {
             newFile.setUrl(url);
             return this.fileRepository.save(newFile);
         } catch (Exception e) {
-            throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
+            throw new FileStorageException(StatusCodeDTO.Builder.aStatusCodeDTO()
+                    .message("Could not store the file. Error: " + e.getMessage())
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build());
         }
     }
 
@@ -70,9 +76,12 @@ public class FilesStorageServiceImpl implements FilesStorageService {
             if (resource.exists() || resource.isReadable()) {
                 return resource;
             } else {
-                throw new RuntimeException("Could not read the file!");
+                throw new FileStorageException(StatusCodeDTO.Builder.aStatusCodeDTO()
+                        .message("Could not read the file: " + filename)
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .build());
             }
-        } catch (MalformedURLException e) {
+        } catch (MalformedURLException | FileStorageException e) {
             throw new RuntimeException("Error: " + e.getMessage());
         }
     }
@@ -83,11 +92,14 @@ public class FilesStorageServiceImpl implements FilesStorageService {
     }
 
     @Override
-    public Stream<Path> loadAll() {
+    public Stream<Path> loadAll() throws FileStorageException {
         try {
             return Files.walk(this.root, 1).filter(path -> !path.equals(this.root)).map(this.root::relativize);
         } catch (IOException e) {
-            throw new RuntimeException("Could not load the files!");
+            throw new FileStorageException(StatusCodeDTO.Builder.aStatusCodeDTO()
+                    .message("Could not load the files!")
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build());
         }
     }
 }

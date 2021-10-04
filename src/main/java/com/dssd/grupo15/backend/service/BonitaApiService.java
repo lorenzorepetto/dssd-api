@@ -7,6 +7,7 @@ import com.dssd.grupo15.backend.dto.rest.bonita.ProcessDefinitionInfoDTO;
 import com.dssd.grupo15.backend.dto.rest.request.CredentialsDTO;
 import com.dssd.grupo15.backend.dto.rest.response.TokenDTO;
 import com.dssd.grupo15.backend.exception.InvalidCredentialsException;
+import com.dssd.grupo15.backend.exception.common.GenericException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -17,6 +18,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.lang.reflect.InvocationTargetException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,10 +62,9 @@ public class BonitaApiService {
                     .message("Bad credentials!")
                     .build());
         }
-
     }
 
-    public String initBonitaProcess(String processName, String token, String sessionId) {
+    public String initBonitaProcess(String processName, String token, String sessionId) throws GenericException {
         ProcessDefinitionInfoDTO processInfo = this.getProcessInfo(processName, sessionId);
         try {
             HttpEntity<InitProcessResponseDTO> res = restTemplate.exchange(
@@ -72,13 +74,14 @@ public class BonitaApiService {
                     new ParameterizedTypeReference<>(){});
             return res.getBody().getId();
         } catch (Exception e) {
-            // TODO: hacer catch
-            System.out.println("aca");
-            return null;
+            throw new GenericException(StatusCodeDTO.Builder.aStatusCodeDTO()
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .message("Internal Server Error")
+                    .build());
         }
     }
 
-    private ProcessDefinitionInfoDTO getProcessInfo(String processName, String sessionId) {
+    private ProcessDefinitionInfoDTO getProcessInfo(String processName, String sessionId) throws GenericException {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(PROCESS_DEFINITION_INFO_URL)
                 .queryParam("s", processName);
 
@@ -89,10 +92,11 @@ public class BonitaApiService {
                     this.getEntityWithHeaders("", sessionId),
                     new ParameterizedTypeReference<>(){});
             return res.getBody().get(0);
-        } catch (Exception e) {
-            // TODO: hacer catch
-            System.out.println("aca");
-            return null;
+        } catch (HttpClientErrorException e) {
+            throw new GenericException(StatusCodeDTO.Builder.aStatusCodeDTO()
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .message("Internal Server Error")
+                    .build());
         }
     }
 
