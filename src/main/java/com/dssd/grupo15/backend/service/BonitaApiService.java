@@ -4,10 +4,13 @@ import com.dssd.grupo15.backend.dto.common.StatusCodeDTO;
 import com.dssd.grupo15.backend.dto.rest.bonita.InitProcessDTO;
 import com.dssd.grupo15.backend.dto.rest.bonita.InitProcessResponseDTO;
 import com.dssd.grupo15.backend.dto.rest.bonita.ProcessDefinitionInfoDTO;
+import com.dssd.grupo15.backend.dto.rest.bonita.VariableDTO;
 import com.dssd.grupo15.backend.dto.rest.request.CredentialsDTO;
 import com.dssd.grupo15.backend.dto.rest.response.TokenDTO;
 import com.dssd.grupo15.backend.exception.InvalidCredentialsException;
 import com.dssd.grupo15.backend.exception.common.GenericException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -38,6 +41,7 @@ public class BonitaApiService {
     private String SESSION_ID_COOKIE;
 
     private final RestTemplate restTemplate;
+    private final Logger logger = LoggerFactory.getLogger(BonitaApiService.class);
 
     public BonitaApiService() {
         this.restTemplate = new RestTemplate();
@@ -64,13 +68,13 @@ public class BonitaApiService {
         }
     }
 
-    public String initBonitaProcess(String processName, String token, String sessionId) throws GenericException {
+    public String initBonitaProcess(String processName, List<VariableDTO> variables, String token, String sessionId) throws GenericException {
         ProcessDefinitionInfoDTO processInfo = this.getProcessInfo(processName, sessionId);
         try {
             HttpEntity<InitProcessResponseDTO> res = restTemplate.exchange(
                     INIT_PROCESS_URL,
                     HttpMethod.POST,
-                    this.getEntityWithHeadersAndBody(token, sessionId, new InitProcessDTO(processInfo.getId(), new ArrayList<>())),
+                    this.getEntityWithHeadersAndBody(token, sessionId, new InitProcessDTO(processInfo.getId(), variables)),
                     new ParameterizedTypeReference<>(){});
             return res.getBody().getId();
         } catch (Exception e) {
@@ -96,6 +100,12 @@ public class BonitaApiService {
             throw new GenericException(StatusCodeDTO.Builder.aStatusCodeDTO()
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .message("Internal Server Error")
+                    .build());
+        } catch (IndexOutOfBoundsException e) {
+            logger.warn(String.format("Failed to retrieve info for process %s", processName));
+            throw new GenericException(StatusCodeDTO.Builder.aStatusCodeDTO()
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .message(String.format("Failed to retrieve info for process %s", processName))
                     .build());
         }
     }

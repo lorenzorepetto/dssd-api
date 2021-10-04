@@ -1,6 +1,7 @@
 package com.dssd.grupo15.backend.service;
 
 import com.dssd.grupo15.backend.dto.common.StatusCodeDTO;
+import com.dssd.grupo15.backend.dto.rest.bonita.VariableDTO;
 import com.dssd.grupo15.backend.dto.rest.request.EstadoDTO;
 import com.dssd.grupo15.backend.dto.rest.request.PaisDTO;
 import com.dssd.grupo15.backend.dto.rest.request.SociedadAnonimaDTO;
@@ -14,10 +15,9 @@ import com.dssd.grupo15.backend.repository.SociedadAnonimaRepository;
 import com.dssd.grupo15.backend.repository.SocioRepository;
 import com.dssd.grupo15.backend.repository.StatusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
@@ -28,8 +28,7 @@ import java.util.List;
 @Service
 public class SociedadService {
 
-    private static final String PROCESS_NAME = "Pool"; //TODO: cambiar por el real
-    private final RestTemplate restTemplate;
+    private static final String PROCESS_NAME = "creacion_sociedad_anonima";
 
     private final PaisService paisService;
     private final BonitaApiService bonitaApiService;
@@ -54,7 +53,6 @@ public class SociedadService {
         this.sociedadAnonimaRepository = sociedadAnonimaRepository;
         this.statusRepository = statusRepository;
         this.exportacionRepository = exportacionRepository;
-        this.restTemplate = new RestTemplate();
     }
 
     @Transactional
@@ -65,10 +63,20 @@ public class SociedadService {
                     .message(String.format("Sociedad with nombre %s already exists.", sociedadAnonimaDTO.getNombre()))
                     .build());
         }
-        String processId = this.bonitaApiService.initBonitaProcess(PROCESS_NAME, token, sessionId);
+
+        String processId = this.bonitaApiService.initBonitaProcess(PROCESS_NAME,
+                this.getVariables(sociedadAnonimaDTO),
+                token,
+                sessionId);
 
         File savedFile = this.filesStorageService.save(file, sociedadAnonimaDTO);
         return this.createAndSaveSociedad(sociedadAnonimaDTO, savedFile, processId);
+    }
+
+    private List<VariableDTO> getVariables(SociedadAnonimaDTO sociedadAnonimaDTO) {
+        List<VariableDTO> variables = new ArrayList<>();
+        variables.add(new VariableDTO("fecha_creacion", sociedadAnonimaDTO.getFechaCreacion().toString()));
+        return variables;
     }
 
     private SociedadAnonima createAndSaveSociedad(SociedadAnonimaDTO sociedadAnonimaDTO, File file, String processId) {
@@ -85,7 +93,7 @@ public class SociedadService {
 
         // Socios
         List<Socio> socios = new ArrayList<>();
-        for (SocioDTO socioDTO: sociedadAnonimaDTO.getSocios()) {
+        for (SocioDTO socioDTO : sociedadAnonimaDTO.getSocios()) {
             socios.add(this.socioRepository.save(new Socio(socioDTO.getNombre(),
                     socioDTO.getApellido(),
                     socioDTO.getAportes())));
@@ -100,19 +108,19 @@ public class SociedadService {
         // Status
         List<Status> statusList = new ArrayList<>();
         statusList.add(this.statusRepository.save(Status.Builder.aStatus()
-                            .status(StatusEnum.NEW.name())
-                            .dateCreated(LocalDateTime.now())
-                            .sociedadAnonima(newSociedad).build()));
+                .status(StatusEnum.NEW.name())
+                .dateCreated(LocalDateTime.now())
+                .sociedadAnonima(newSociedad).build()));
         newSociedad.setStatus(statusList);
 
         // Exportaciones
         List<Exportacion> exportaciones = new ArrayList<>();
-        for (PaisDTO paisDTO: sociedadAnonimaDTO.getPaises()) {
+        for (PaisDTO paisDTO : sociedadAnonimaDTO.getPaises()) {
             Pais pais = this.paisService.handleCreation(paisDTO);
             if (paisDTO.getStates().isEmpty()) {
                 exportaciones.add(this.exportacionRepository.save(new Exportacion(newSociedad, pais)));
             } else {
-                for (EstadoDTO estadoDTO: paisDTO.getStates()) {
+                for (EstadoDTO estadoDTO : paisDTO.getStates()) {
                     exportaciones.add(this.exportacionRepository.save(new Exportacion(newSociedad, pais, estadoDTO.getName())));
                 }
             }

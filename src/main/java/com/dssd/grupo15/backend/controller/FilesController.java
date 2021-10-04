@@ -1,5 +1,6 @@
 package com.dssd.grupo15.backend.controller;
 
+import com.dssd.grupo15.backend.exception.FileStorageException;
 import com.dssd.grupo15.backend.model.File;
 import com.dssd.grupo15.backend.service.FilesStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ public class FilesController extends GenericController {
     }
 
     @GetMapping("/files")
-    public ResponseEntity<List<File>> getListFiles() {
+    public ResponseEntity<List<File>> getListFiles() throws FileStorageException {
         List<File> files = storageService.loadAll().map(path -> {
             String filename = path.getFileName().toString();
             String url = MvcUriComponentsBuilder
