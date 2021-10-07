@@ -19,13 +19,18 @@ public class Socio {
     @Column(name = "aportes", nullable = false)
     private BigDecimal aportes;
 
+    @ManyToOne
+    @JoinColumn(name="sociedad_anonima_id", nullable=false)
+    private SociedadAnonima sociedadAnonima;
+
     public Socio() {
     }
 
-    public Socio(String nombre, String apellido, BigDecimal aportes) {
+    public Socio(String nombre, String apellido, BigDecimal aportes, SociedadAnonima sociedadAnonima) {
         this.nombre = nombre;
         this.apellido = apellido;
         this.aportes = aportes;
+        this.sociedadAnonima = sociedadAnonima;
     }
 
     public Long getId() {
@@ -58,5 +63,13 @@ public class Socio {
 
     public void setAportes(BigDecimal aportes) {
         this.aportes = aportes;
+    }
+
+    public SociedadAnonima getSociedadAnonima() {
+        return sociedadAnonima;
+    }
+
+    public void setSociedadAnonima(SociedadAnonima sociedadAnonima) {
+        this.sociedadAnonima = sociedadAnonima;
     }
 }

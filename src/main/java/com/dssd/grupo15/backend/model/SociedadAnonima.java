@@ -33,19 +33,23 @@ public class SociedadAnonima {
 
     @OneToMany(
             cascade = CascadeType.ALL,
-            orphanRemoval = true
+            orphanRemoval = true,
+            mappedBy = "sociedadAnonima"
     )
     @JsonIgnoreProperties("sociedadAnonima")
     private List<Status> status;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "apoderado_id", referencedColumnName = "id")
+    @JsonIgnoreProperties("sociedadAnonima")
     private Socio apoderado;
 
     @OneToMany(
             cascade = CascadeType.ALL,
-            orphanRemoval = true
+            orphanRemoval = true,
+            mappedBy = "sociedadAnonima"
     )
+    @JsonIgnoreProperties("sociedadAnonima")
     private List<Socio> socios;
 
     @OneToOne(cascade = CascadeType.ALL)
@@ -54,7 +58,8 @@ public class SociedadAnonima {
 
     @OneToMany(
             cascade = CascadeType.ALL,
-            orphanRemoval = true
+            orphanRemoval = true,
+            mappedBy = "sociedadAnonima"
     )
     @JsonIgnoreProperties("sociedadAnonima")
     private List<Exportacion> exportaciones;

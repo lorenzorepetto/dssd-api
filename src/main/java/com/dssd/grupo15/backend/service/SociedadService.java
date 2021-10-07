@@ -91,18 +91,6 @@ public class SociedadService {
         sociedadAnonima.setEstatuto(file);
         sociedadAnonima.setProcessId(processId);
 
-        // Socios
-        List<Socio> socios = new ArrayList<>();
-        for (SocioDTO socioDTO : sociedadAnonimaDTO.getSocios()) {
-            socios.add(this.socioRepository.save(new Socio(socioDTO.getNombre(),
-                    socioDTO.getApellido(),
-                    socioDTO.getAportes())));
-        }
-        sociedadAnonima.setSocios(socios);
-        sociedadAnonima.setApoderado(socios.stream()
-                .max(Comparator.comparing(Socio::getAportes))
-                .orElseThrow(() -> new RuntimeException(""))); // TODO: arreglar
-
         SociedadAnonima newSociedad = this.sociedadAnonimaRepository.save(sociedadAnonima);
 
         // Status
@@ -126,6 +114,19 @@ public class SociedadService {
             }
         }
         newSociedad.setExportaciones(exportaciones);
+
+        // Socios
+        List<Socio> socios = new ArrayList<>();
+        for (SocioDTO socioDTO : sociedadAnonimaDTO.getSocios()) {
+            socios.add(this.socioRepository.save(new Socio(socioDTO.getNombre(),
+                    socioDTO.getApellido(),
+                    socioDTO.getAportes(),
+                    newSociedad)));
+        }
+        newSociedad.setSocios(socios);
+        newSociedad.setApoderado(socios.stream()
+                .max(Comparator.comparing(Socio::getAportes))
+                .orElseThrow(() -> new RuntimeException(""))); // TODO: arreglar
 
         return this.sociedadAnonimaRepository.save(newSociedad);
     }
