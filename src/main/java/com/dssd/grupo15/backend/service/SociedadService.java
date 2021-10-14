@@ -76,6 +76,7 @@ public class SociedadService {
     private List<VariableDTO> getVariables(SociedadAnonimaDTO sociedadAnonimaDTO) {
         List<VariableDTO> variables = new ArrayList<>();
         variables.add(new VariableDTO("fecha_creacion", sociedadAnonimaDTO.getFechaCreacion().toString()));
+        variables.add(new VariableDTO("nombre_sa", sociedadAnonimaDTO.getNombre()));
         return variables;
     }
 
