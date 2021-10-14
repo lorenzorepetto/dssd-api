@@ -97,6 +97,12 @@ public class BonitaApiService {
                     new ParameterizedTypeReference<>(){});
             return res.getBody().get(0);
         } catch (HttpClientErrorException e) {
+            if (HttpStatus.UNAUTHORIZED.equals(e.getStatusCode())) {
+                throw new InvalidCredentialsException(StatusCodeDTO.Builder.aStatusCodeDTO()
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .message("Bad credentials!")
+                        .build());
+            }
             throw new GenericException(StatusCodeDTO.Builder.aStatusCodeDTO()
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .message("Internal Server Error")
