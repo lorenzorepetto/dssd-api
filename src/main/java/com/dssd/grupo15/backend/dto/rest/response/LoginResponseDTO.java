@@ -1,15 +1,22 @@
 package com.dssd.grupo15.backend.dto.rest.response;
 
-public class TokenDTO {
+public class LoginResponseDTO {
     private String token;
     private String sessionId;
+    private String role;
 
-    public TokenDTO() {
+    public LoginResponseDTO() {
     }
 
-    public TokenDTO(String token, String sessionId) {
+    public LoginResponseDTO(String token, String sessionId) {
         this.token = token;
         this.sessionId = sessionId;
+    }
+
+    public LoginResponseDTO(String token, String sessionId, String role) {
+        this.token = token;
+        this.sessionId = sessionId;
+        this.role = role;
     }
 
     public String getToken() {
@@ -26,5 +33,13 @@ public class TokenDTO {
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

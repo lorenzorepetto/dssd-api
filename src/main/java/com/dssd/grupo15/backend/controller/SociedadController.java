@@ -32,6 +32,9 @@ public class SociedadController extends GenericController {
         this.sociedadService = sociedadService;
     }
 
+
+
+
     @PostMapping("/api/sociedad")
     public Object createSociedad(@RequestParam("estatuto") MultipartFile file,
                                  @RequestParam("sociedad_anonima") String sociedadAnonimaString,
