@@ -31,6 +31,9 @@ public class SociedadAnonima {
     @Column(name = "email", nullable = false)
     private String email;
 
+    @Column(name = "username", nullable = false)
+    private String username;
+
     @OneToMany(
             cascade = CascadeType.ALL,
             orphanRemoval = true,
@@ -65,20 +68,6 @@ public class SociedadAnonima {
     private List<Exportacion> exportaciones;
 
     public SociedadAnonima() {
-    }
-
-    public SociedadAnonima(String processId, String nombre, LocalDate fechaCreacion, String domicilioLegal, String domicilioReal, String email, List<Status> status, Socio apoderado, List<Socio> socios, File estatuto, List<Exportacion> exportaciones) {
-        this.processId = processId;
-        this.nombre = nombre;
-        this.fechaCreacion = fechaCreacion;
-        this.domicilioLegal = domicilioLegal;
-        this.domicilioReal = domicilioReal;
-        this.email = email;
-        this.status = status;
-        this.apoderado = apoderado;
-        this.socios = socios;
-        this.estatuto = estatuto;
-        this.exportaciones = exportaciones;
     }
 
     public Long getId() {
@@ -135,6 +124,14 @@ public class SociedadAnonima {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public List<Status> getStatus() {
@@ -221,6 +218,11 @@ public class SociedadAnonima {
 
         public Builder email(String email) {
             sociedadAnonima.setEmail(email);
+            return this;
+        }
+
+        public Builder username(String username) {
+            sociedadAnonima.setUsername(username);
             return this;
         }
 

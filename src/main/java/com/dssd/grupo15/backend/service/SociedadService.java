@@ -87,6 +87,7 @@ public class SociedadService {
         sociedadAnonima.setDomicilioReal(sociedadAnonimaDTO.getDomicilioReal());
         sociedadAnonima.setFechaCreacion(sociedadAnonimaDTO.getFechaCreacion());
         sociedadAnonima.setEmail(sociedadAnonimaDTO.getEmail());
+        sociedadAnonima.setUsername(sociedadAnonimaDTO.getUsername());
 
         // File y ProcessId
         sociedadAnonima.setEstatuto(file);

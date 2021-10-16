@@ -24,6 +24,7 @@ public class SociedadMapper {
         sociedadAnonimaDTO.setDomicilioLegal(sociedadAnonima.getString("domicilioLegal"));
         sociedadAnonimaDTO.setDomicilioReal(sociedadAnonima.getString("domicilioReal"));
         sociedadAnonimaDTO.setEmail(sociedadAnonima.getString("correoElectronico"));
+        sociedadAnonimaDTO.setUsername(sociedadAnonima.getString("username"));
 
         // Apoderado y socios
         JSONObject apoderado = sociedadAnonima.getJSONObject("apoderado");

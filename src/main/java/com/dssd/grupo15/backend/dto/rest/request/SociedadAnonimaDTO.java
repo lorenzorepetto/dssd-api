@@ -9,6 +9,7 @@ public class SociedadAnonimaDTO {
     private String domicilioLegal;
     private String domicilioReal;
     private String email;
+    private String username;
     private SocioDTO apoderado;
     private List<SocioDTO> socios;
     private List<PaisDTO> paises;
@@ -51,6 +52,14 @@ public class SociedadAnonimaDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public SocioDTO getApoderado() {
@@ -110,6 +119,11 @@ public class SociedadAnonimaDTO {
 
         public Builder email(String email) {
             sociedadAnonimaDTO.setEmail(email);
+            return this;
+        }
+
+        public Builder username(String username) {
+            sociedadAnonimaDTO.setUsername(username);
             return this;
         }
 
