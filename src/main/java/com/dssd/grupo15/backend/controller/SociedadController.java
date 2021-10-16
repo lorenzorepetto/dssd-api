@@ -4,6 +4,7 @@ import com.dssd.grupo15.backend.dto.common.StatusCodeDTO;
 import com.dssd.grupo15.backend.dto.rest.request.SociedadAnonimaDTO;
 import com.dssd.grupo15.backend.exception.BadRequestException;
 import com.dssd.grupo15.backend.exception.common.GenericException;
+import com.dssd.grupo15.backend.model.SociedadAnonima;
 import com.dssd.grupo15.backend.service.SociedadService;
 import com.dssd.grupo15.backend.utils.SociedadMapper;
 import org.json.JSONException;
@@ -12,17 +13,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 public class SociedadController extends GenericController {
 
     private final SociedadService sociedadService;
     private static final String BONITA_TOKEN = "X-Bonita-API-Token";
+    private static final String ROLE = "ROLE";
     private static final String SESSION_ID_COOKIE = "JSESSIONID";
 
     private static final Logger logger = LoggerFactory.getLogger(SociedadController.class);
@@ -30,6 +31,14 @@ public class SociedadController extends GenericController {
     @Autowired
     public SociedadController(SociedadService sociedadService) {
         this.sociedadService = sociedadService;
+    }
+
+    @GetMapping("/api/sociedades")
+    public List<SociedadAnonima> getSociedades(@RequestHeader(BONITA_TOKEN) String token,
+                                               @RequestHeader(SESSION_ID_COOKIE) String sessionId,
+                                               @RequestHeader(ROLE) String role,
+                                               @RequestParam(required = false) String username) {
+        return this.sociedadService.getSociedadesByRole(role, username);
     }
 
     @PostMapping("/api/sociedad")

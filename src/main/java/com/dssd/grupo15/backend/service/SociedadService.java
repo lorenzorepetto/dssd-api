@@ -9,11 +9,13 @@ import com.dssd.grupo15.backend.dto.rest.request.SocioDTO;
 import com.dssd.grupo15.backend.exception.AlreadyExistsException;
 import com.dssd.grupo15.backend.exception.common.GenericException;
 import com.dssd.grupo15.backend.model.*;
+import com.dssd.grupo15.backend.model.enums.Role;
 import com.dssd.grupo15.backend.model.enums.StatusEnum;
 import com.dssd.grupo15.backend.repository.ExportacionRepository;
 import com.dssd.grupo15.backend.repository.SociedadAnonimaRepository;
 import com.dssd.grupo15.backend.repository.SocioRepository;
 import com.dssd.grupo15.backend.repository.StatusRepository;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -54,6 +56,21 @@ public class SociedadService {
         this.statusRepository = statusRepository;
         this.exportacionRepository = exportacionRepository;
     }
+
+
+    public List<SociedadAnonima> getSociedadesByRole(String role, String username) {
+        if (!EnumUtils.isValidEnum(Role.class, role)) {
+            return new ArrayList<>();
+        }
+        if (Role.LEGALES.name().equalsIgnoreCase(role)) {
+            return this.sociedadAnonimaRepository.findByStatus(StatusEnum.MESA_ENTRADAS_APROBADO.name());
+        } else if (Role.MESA_ENTRADAS.name().equalsIgnoreCase(role)) {
+            return this.sociedadAnonimaRepository.findByStatus(StatusEnum.NEW.name());
+        } else {
+            return this.sociedadAnonimaRepository.findByUsername(username);
+        }
+    }
+
 
     @Transactional
     public Object createSociedad(SociedadAnonimaDTO sociedadAnonimaDTO, MultipartFile file, String token, String sessionId) throws GenericException {

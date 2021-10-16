@@ -40,6 +40,7 @@ public class SociedadAnonima {
             mappedBy = "sociedadAnonima"
     )
     @JsonIgnoreProperties("sociedadAnonima")
+    @OrderBy("dateCreated DESC")
     private List<Status> status;
 
     @OneToOne(cascade = CascadeType.ALL)
