@@ -33,6 +33,8 @@ public class BonitaApiService {
     private String USER_ID_URL;
     @Value("${bonita.user.role.url}")
     private String USER_ROLE_URL;
+    @Value("${bonita.user.membership.url}")
+    private String USER_MEMBERSHIP_URL;
     @Value("${bonita.process.definition.info.url}")
     private String PROCESS_DEFINITION_INFO_URL;
     @Value("${bonita.process.init.url}")
@@ -96,9 +98,17 @@ public class BonitaApiService {
                         .build());
             }
 
+            // Get user membership
+            String urlMembership = USER_MEMBERSHIP_URL + "?f=user_id=" + userIdResponse.getBody().get(0).getId();
+            HttpEntity<List<MembershipDTO>> userMembershipResponse = restTemplate.exchange(
+                    urlMembership,
+                    HttpMethod.GET,
+                    this.getEntityWithHeaders(loginResponseDTO.getToken(), loginResponseDTO.getSessionId()),
+                    new ParameterizedTypeReference<>(){});
+
             // Get role by user id
             UriComponentsBuilder userRoleBuilder = UriComponentsBuilder.fromHttpUrl(USER_ROLE_URL)
-                    .path(String.format("/%s", userIdResponse.getBody().get(0).getId()));
+                    .path(String.format("/%s", userMembershipResponse.getBody().get(0).getRoleId()));
 
             HttpEntity<RoleIdDTO> userRoleResponse = restTemplate.exchange(
                     userRoleBuilder.toUriString(),
