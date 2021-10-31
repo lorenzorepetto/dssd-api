@@ -1,12 +1,12 @@
 package com.dssd.grupo15.backend.dto.rest.bonita;
 
-public class UserIdDTO {
+public class IdDTO {
     private String id;
 
-    public UserIdDTO() {
+    public IdDTO() {
     }
 
-    public UserIdDTO(String id) {
+    public IdDTO(String id) {
         this.id = id;
     }
 

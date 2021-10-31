@@ -2,19 +2,14 @@ package com.dssd.grupo15.backend.service;
 
 import com.dssd.grupo15.backend.dto.common.StatusCodeDTO;
 import com.dssd.grupo15.backend.dto.rest.bonita.VariableDTO;
-import com.dssd.grupo15.backend.dto.rest.request.EstadoDTO;
-import com.dssd.grupo15.backend.dto.rest.request.PaisDTO;
-import com.dssd.grupo15.backend.dto.rest.request.SociedadAnonimaDTO;
-import com.dssd.grupo15.backend.dto.rest.request.SocioDTO;
+import com.dssd.grupo15.backend.dto.rest.request.*;
 import com.dssd.grupo15.backend.exception.AlreadyExistsException;
 import com.dssd.grupo15.backend.exception.common.GenericException;
 import com.dssd.grupo15.backend.model.*;
 import com.dssd.grupo15.backend.model.enums.Role;
 import com.dssd.grupo15.backend.model.enums.StatusEnum;
-import com.dssd.grupo15.backend.repository.ExportacionRepository;
-import com.dssd.grupo15.backend.repository.SociedadAnonimaRepository;
-import com.dssd.grupo15.backend.repository.SocioRepository;
-import com.dssd.grupo15.backend.repository.StatusRepository;
+import com.dssd.grupo15.backend.repository.*;
+import com.dssd.grupo15.backend.utils.StatusUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SociedadService {
@@ -39,6 +35,7 @@ public class SociedadService {
     private final SociedadAnonimaRepository sociedadAnonimaRepository;
     private final StatusRepository statusRepository;
     private final ExportacionRepository exportacionRepository;
+    private final ExpedienteRepository expedienteRepository;
 
     @Autowired
     public SociedadService(PaisService paisService,
@@ -47,7 +44,8 @@ public class SociedadService {
                            SocioRepository socioRepository,
                            SociedadAnonimaRepository sociedadAnonimaRepository,
                            StatusRepository statusRepository,
-                           ExportacionRepository exportacionRepository) {
+                           ExportacionRepository exportacionRepository,
+                           ExpedienteRepository expedienteRepository) {
         this.paisService = paisService;
         this.bonitaApiService = bonitaApiService;
         this.filesStorageService = filesStorageService;
@@ -55,6 +53,7 @@ public class SociedadService {
         this.sociedadAnonimaRepository = sociedadAnonimaRepository;
         this.statusRepository = statusRepository;
         this.exportacionRepository = exportacionRepository;
+        this.expedienteRepository = expedienteRepository;
     }
 
 
@@ -71,9 +70,31 @@ public class SociedadService {
         }
     }
 
+    @Transactional
+    public SociedadAnonima updateSociedadStatus(Long id, boolean aprobado, CredentialsDTO credentialsDTO, String token, String sessionId) throws GenericException {
+        Optional<SociedadAnonima> sociedadAnonimaOptional = this.sociedadAnonimaRepository.findById(id);
+        //errores?
+        if (sociedadAnonimaOptional.isEmpty()) {
+            return null;
+        }
+
+        SociedadAnonima sociedadAnonima = sociedadAnonimaOptional.get();
+
+        Status newStatus = this.statusRepository.save(Status.Builder.aStatus()
+                        .status(StatusUtils.getNextStatus(sociedadAnonima.getStatus().get(0), aprobado))
+                        .dateCreated(LocalDateTime.now())
+                        .sociedadAnonima(sociedadAnonima).build());
+        sociedadAnonima.getStatus().add(newStatus);
+
+        this.manageNewStatusActions(newStatus, sociedadAnonima, credentialsDTO, token, sessionId);
+
+        this.sociedadAnonimaRepository.save(sociedadAnonima);
+        sociedadAnonima.getStatus().sort(Comparator.comparing(Status::getDateCreated).reversed());
+        return sociedadAnonima;
+    }
 
     @Transactional
-    public Object createSociedad(SociedadAnonimaDTO sociedadAnonimaDTO, MultipartFile file, String token, String sessionId) throws GenericException {
+    public SociedadAnonima createSociedad(SociedadAnonimaDTO sociedadAnonimaDTO, MultipartFile file, String token, String sessionId) throws GenericException {
         if (this.sociedadAnonimaRepository.findByNombre(sociedadAnonimaDTO.getNombre()).isPresent()) {
             throw new AlreadyExistsException(StatusCodeDTO.Builder.aStatusCodeDTO()
                     .status(HttpStatus.BAD_REQUEST)
@@ -82,7 +103,7 @@ public class SociedadService {
         }
 
         String processId = this.bonitaApiService.initBonitaProcess(PROCESS_NAME,
-                this.getVariables(sociedadAnonimaDTO),
+                this.getInitVariables(sociedadAnonimaDTO),
                 token,
                 sessionId);
 
@@ -90,10 +111,12 @@ public class SociedadService {
         return this.createAndSaveSociedad(sociedadAnonimaDTO, savedFile, processId);
     }
 
-    private List<VariableDTO> getVariables(SociedadAnonimaDTO sociedadAnonimaDTO) {
+    private List<VariableDTO> getInitVariables(SociedadAnonimaDTO sociedadAnonimaDTO) {
         List<VariableDTO> variables = new ArrayList<>();
         variables.add(new VariableDTO("fecha_creacion", sociedadAnonimaDTO.getFechaCreacion().toString()));
         variables.add(new VariableDTO("nombre_sa", sociedadAnonimaDTO.getNombre()));
+        variables.add(new VariableDTO("status", StatusEnum.NEW.name()));
+        variables.add(new VariableDTO("email_apoderado", sociedadAnonimaDTO.getEmail()));
         return variables;
     }
 
@@ -148,5 +171,26 @@ public class SociedadService {
                 .orElseThrow(() -> new RuntimeException(""))); // TODO: arreglar
 
         return this.sociedadAnonimaRepository.save(newSociedad);
+    }
+
+    private void manageNewStatusActions(Status newStatus, SociedadAnonima sociedadAnonima, CredentialsDTO credentialsDTO, String token, String sessionId)
+            throws GenericException {
+        if (StatusEnum.MESA_ENTRADAS_APROBADO.name().equalsIgnoreCase(newStatus.getStatus())) {
+            // generar expediente
+            Expediente expediente = this.expedienteRepository.save(Expediente.Builder.anExpediente()
+                            .sociedadAnonima(sociedadAnonima)
+                            .username(credentialsDTO.getUsername()).build());
+            sociedadAnonima.setExpediente(expediente);
+            this.sociedadAnonimaRepository.save(sociedadAnonima);
+
+            // actualizar tarea en bonita
+            this.bonitaApiService.updateTask(sociedadAnonima, newStatus.getStatus(), credentialsDTO, token, sessionId);
+        } else if (StatusEnum.MESA_ENTRADAS_RECHAZADO.name().equalsIgnoreCase(newStatus.getStatus())) {
+            // TODO: enviar mail?
+        } else if (StatusEnum.LEGALES_APROBADO.name().equalsIgnoreCase(newStatus.getStatus())) {
+            // TODO: estampillado
+        } else if (StatusEnum.LEGALES_RECHAZADO.name().equalsIgnoreCase(newStatus.getStatus())) {
+            // TODO: enviar mail?
+        }
     }
 }

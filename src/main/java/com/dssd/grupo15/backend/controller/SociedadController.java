@@ -1,6 +1,7 @@
 package com.dssd.grupo15.backend.controller;
 
 import com.dssd.grupo15.backend.dto.common.StatusCodeDTO;
+import com.dssd.grupo15.backend.dto.rest.request.CredentialsDTO;
 import com.dssd.grupo15.backend.dto.rest.request.SociedadAnonimaDTO;
 import com.dssd.grupo15.backend.exception.BadRequestException;
 import com.dssd.grupo15.backend.exception.common.GenericException;
@@ -42,10 +43,10 @@ public class SociedadController extends GenericController {
     }
 
     @PostMapping("/api/sociedad")
-    public Object createSociedad(@RequestParam("estatuto") MultipartFile file,
-                                 @RequestParam("sociedad_anonima") String sociedadAnonimaString,
-                                 @RequestHeader(BONITA_TOKEN) String token,
-                                 @RequestHeader(SESSION_ID_COOKIE) String sessionId) throws GenericException {
+    public SociedadAnonima createSociedad(@RequestParam("estatuto") MultipartFile file,
+                                          @RequestParam("sociedad_anonima") String sociedadAnonimaString,
+                                          @RequestHeader(BONITA_TOKEN) String token,
+                                          @RequestHeader(SESSION_ID_COOKIE) String sessionId) throws GenericException {
         try {
             SociedadAnonimaDTO sociedadAnonimaDTO = SociedadMapper.mapFromJSONObject(new JSONObject(sociedadAnonimaString));
             return this.sociedadService.createSociedad(sociedadAnonimaDTO, file, token, sessionId);
@@ -56,6 +57,16 @@ public class SociedadController extends GenericController {
                     .status(HttpStatus.BAD_REQUEST)
                     .build());
         }
+    }
+
+    @PutMapping("/api/sociedad/{id}/status")
+    public SociedadAnonima updateSociedad(@PathVariable("id") Long id,
+                                          @RequestParam("aprobado") boolean aprobado,
+                                          @RequestHeader(ROLE) String role,
+                                          @RequestHeader(BONITA_TOKEN) String token,
+                                          @RequestHeader(SESSION_ID_COOKIE) String sessionId,
+                                          @RequestBody CredentialsDTO credentialsDTO) throws GenericException {
+        return this.sociedadService.updateSociedadStatus(id, aprobado, credentialsDTO, token, sessionId);
     }
 
 

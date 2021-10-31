@@ -60,6 +60,10 @@ public class SociedadAnonima {
     @JoinColumn(name = "file_id", referencedColumnName = "id")
     private File estatuto;
 
+    @OneToOne(mappedBy = "sociedadAnonima")
+    @JsonIgnoreProperties("sociedadAnonima")
+    private Expediente expediente;
+
     @OneToMany(
             cascade = CascadeType.ALL,
             orphanRemoval = true,
@@ -167,6 +171,14 @@ public class SociedadAnonima {
         this.estatuto = estatuto;
     }
 
+    public Expediente getExpediente() {
+        return expediente;
+    }
+
+    public void setExpediente(Expediente expediente) {
+        this.expediente = expediente;
+    }
+
     public List<Exportacion> getExportaciones() {
         return exportaciones;
     }
@@ -244,6 +256,11 @@ public class SociedadAnonima {
 
         public Builder estatuto(File estatuto) {
             sociedadAnonima.setEstatuto(estatuto);
+            return this;
+        }
+
+        public Builder expediente(Expediente expediente) {
+            sociedadAnonima.setExpediente(expediente);
             return this;
         }
 
