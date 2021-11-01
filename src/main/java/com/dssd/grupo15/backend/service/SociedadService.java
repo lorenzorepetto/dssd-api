@@ -31,6 +31,7 @@ public class SociedadService {
     private final PaisService paisService;
     private final BonitaApiService bonitaApiService;
     private final FilesStorageService filesStorageService;
+    private final EstampilladoService estampilladoService;
     private final SocioRepository socioRepository;
     private final SociedadAnonimaRepository sociedadAnonimaRepository;
     private final StatusRepository statusRepository;
@@ -41,6 +42,7 @@ public class SociedadService {
     public SociedadService(PaisService paisService,
                            BonitaApiService bonitaApiService,
                            FilesStorageService filesStorageService,
+                           EstampilladoService estampilladoService,
                            SocioRepository socioRepository,
                            SociedadAnonimaRepository sociedadAnonimaRepository,
                            StatusRepository statusRepository,
@@ -49,6 +51,7 @@ public class SociedadService {
         this.paisService = paisService;
         this.bonitaApiService = bonitaApiService;
         this.filesStorageService = filesStorageService;
+        this.estampilladoService = estampilladoService;
         this.socioRepository = socioRepository;
         this.sociedadAnonimaRepository = sociedadAnonimaRepository;
         this.statusRepository = statusRepository;
@@ -186,11 +189,16 @@ public class SociedadService {
             // actualizar tarea en bonita
             this.bonitaApiService.updateTask(sociedadAnonima, newStatus.getStatus(), credentialsDTO, token, sessionId);
         } else if (StatusEnum.MESA_ENTRADAS_RECHAZADO.name().equalsIgnoreCase(newStatus.getStatus())) {
-            // TODO: enviar mail?
+            this.bonitaApiService.updateTask(sociedadAnonima, newStatus.getStatus(), credentialsDTO, token, sessionId);
         } else if (StatusEnum.LEGALES_APROBADO.name().equalsIgnoreCase(newStatus.getStatus())) {
-            // TODO: estampillado
+            // estampillado
+            String estampillado = this.estampilladoService.estampillar(sociedadAnonima.getExpediente(),
+                    credentialsDTO);
+            sociedadAnonima.setEstampillado(estampillado);
+            this.sociedadAnonimaRepository.save(sociedadAnonima);
+            this.bonitaApiService.updateTask(sociedadAnonima, newStatus.getStatus(), credentialsDTO, token, sessionId);
         } else if (StatusEnum.LEGALES_RECHAZADO.name().equalsIgnoreCase(newStatus.getStatus())) {
-            // TODO: enviar mail?
+            this.bonitaApiService.updateTask(sociedadAnonima, newStatus.getStatus(), credentialsDTO, token, sessionId);
         }
     }
 }

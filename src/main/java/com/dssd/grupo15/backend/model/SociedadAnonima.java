@@ -16,6 +16,9 @@ public class SociedadAnonima {
     @Column(name = "process_id", nullable = false)
     private String processId;
 
+    @Column(name = "estampillado")
+    private String estampillado;
+
     @Column(name = "nombre", nullable = false)
     private String nombre;
 
@@ -139,6 +142,14 @@ public class SociedadAnonima {
         this.username = username;
     }
 
+    public String getEstampillado() {
+        return estampillado;
+    }
+
+    public void setEstampillado(String estampillado) {
+        this.estampillado = estampillado;
+    }
+
     public List<Status> getStatus() {
         return status;
     }
@@ -236,6 +247,11 @@ public class SociedadAnonima {
 
         public Builder username(String username) {
             sociedadAnonima.setUsername(username);
+            return this;
+        }
+
+        public Builder estampillado(String estampillado) {
+            sociedadAnonima.setEstampillado(estampillado);
             return this;
         }
 
