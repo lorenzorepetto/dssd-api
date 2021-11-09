@@ -73,6 +73,10 @@ public class SociedadService {
         }
     }
 
+    public SociedadAnonima getSociedad(Long id) {
+        return this.sociedadAnonimaRepository.findByExpedienteId(id);
+    }
+
     @Transactional
     public SociedadAnonima updateSociedadStatus(Long id, boolean aprobado, CredentialsDTO credentialsDTO, String token, String sessionId) throws GenericException {
         Optional<SociedadAnonima> sociedadAnonimaOptional = this.sociedadAnonimaRepository.findById(id);

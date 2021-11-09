@@ -69,5 +69,8 @@ public class SociedadController extends GenericController {
         return this.sociedadService.updateSociedadStatus(id, aprobado, credentialsDTO, token, sessionId);
     }
 
-
+    @GetMapping("/sociedad/{id}")
+    public SociedadAnonima getSociedad(@PathVariable("id") Long expedienteId) {
+        return this.sociedadService.getSociedad(expedienteId);
+    }
 }

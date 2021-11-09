@@ -16,4 +16,8 @@ public interface SociedadAnonimaRepository extends JpaRepository<SociedadAnonima
     List<SociedadAnonima> findByStatus(String status);
 
     List<SociedadAnonima> findByUsername(String username);
+
+    @Query("FROM SociedadAnonima sa INNER JOIN sa.expediente e " +
+            "WHERE e.id = :id ")
+    SociedadAnonima findByExpedienteId(Long id);
 }
