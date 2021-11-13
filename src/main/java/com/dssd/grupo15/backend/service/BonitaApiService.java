@@ -103,6 +103,7 @@ public class BonitaApiService {
     public void updateTask(SociedadAnonima sociedadAnonima,
                            String newStatus,
                            CredentialsDTO credentialsDTO,
+                           List<VariableDTO> variables,
                            String token,
                            String sessionId)
             throws GenericException {
@@ -112,10 +113,6 @@ public class BonitaApiService {
         String taskId = this.assignTask(sociedadAnonima.getProcessId(), userId, token, sessionId);
 
         // completar tarea con variables
-        List<VariableDTO> variables = List.of(
-                new VariableDTO("sa_form_valido",
-                        StatusEnum.MESA_ENTRADAS_APROBADO.name().equalsIgnoreCase(newStatus) ? "true" : "false")
-        );
         this.completeTask(taskId, token, sessionId, variables);
 
     }

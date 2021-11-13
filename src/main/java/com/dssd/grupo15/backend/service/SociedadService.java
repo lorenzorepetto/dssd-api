@@ -4,6 +4,7 @@ import com.dssd.grupo15.backend.dto.common.StatusCodeDTO;
 import com.dssd.grupo15.backend.dto.rest.bonita.VariableDTO;
 import com.dssd.grupo15.backend.dto.rest.request.*;
 import com.dssd.grupo15.backend.exception.AlreadyExistsException;
+import com.dssd.grupo15.backend.exception.InvalidCredentialsException;
 import com.dssd.grupo15.backend.exception.common.GenericException;
 import com.dssd.grupo15.backend.model.*;
 import com.dssd.grupo15.backend.model.enums.Role;
@@ -78,7 +79,33 @@ public class SociedadService {
     }
 
     @Transactional
-    public SociedadAnonima updateSociedadStatus(Long id, boolean aprobado, CredentialsDTO credentialsDTO, String token, String sessionId) throws GenericException {
+    public SociedadAnonima generarDocumentacion(Long id, CredentialsDTO credentialsDTO, String role, String token, String sessionId) throws GenericException {
+        this.validateRole(Role.MESA_ENTRADAS.name(), role);
+        Optional<SociedadAnonima> sociedadAnonimaOptional = this.sociedadAnonimaRepository.findById(id);
+        //errores?
+        if (sociedadAnonimaOptional.isEmpty()) {
+            return null;
+        }
+        SociedadAnonima sociedadAnonima = sociedadAnonimaOptional.get();
+
+        Status newStatus = this.statusRepository.save(Status.Builder.aStatus()
+                .status(StatusUtils.getNextStatus(sociedadAnonima.getStatus().get(0)))
+                .dateCreated(LocalDateTime.now())
+                .sociedadAnonima(sociedadAnonima).build());
+        sociedadAnonima.getStatus().add(newStatus);
+
+        // TODO: Actualizar en bonita
+        this.bonitaApiService.updateTask(sociedadAnonima, newStatus.getStatus(), credentialsDTO, new ArrayList<>(), token, sessionId);
+
+        // TODO: Generar documentación
+
+        this.sociedadAnonimaRepository.save(sociedadAnonima);
+        sociedadAnonima.getStatus().sort(Comparator.comparing(Status::getDateCreated).reversed());
+        return sociedadAnonima;
+    }
+
+    @Transactional
+    public SociedadAnonima updateSociedadStatus(Long id, boolean aprobado, CredentialsDTO credentialsDTO, String role, String token, String sessionId) throws GenericException {
         Optional<SociedadAnonima> sociedadAnonimaOptional = this.sociedadAnonimaRepository.findById(id);
         //errores?
         if (sociedadAnonimaOptional.isEmpty()) {
@@ -93,7 +120,7 @@ public class SociedadService {
                         .sociedadAnonima(sociedadAnonima).build());
         sociedadAnonima.getStatus().add(newStatus);
 
-        this.manageNewStatusActions(newStatus, sociedadAnonima, credentialsDTO, token, sessionId);
+        this.manageNewStatusActions(newStatus, sociedadAnonima, credentialsDTO, role, token, sessionId);
 
         this.sociedadAnonimaRepository.save(sociedadAnonima);
         sociedadAnonima.getStatus().sort(Comparator.comparing(Status::getDateCreated).reversed());
@@ -101,7 +128,8 @@ public class SociedadService {
     }
 
     @Transactional
-    public SociedadAnonima createSociedad(SociedadAnonimaDTO sociedadAnonimaDTO, MultipartFile file, String token, String sessionId) throws GenericException {
+    public SociedadAnonima createSociedad(SociedadAnonimaDTO sociedadAnonimaDTO, String role, MultipartFile file, String token, String sessionId) throws GenericException {
+        this.validateRole(Role.APODERADO.name(), role);
         if (this.sociedadAnonimaRepository.findByNombre(sociedadAnonimaDTO.getNombre()).isPresent()) {
             throw new AlreadyExistsException(StatusCodeDTO.Builder.aStatusCodeDTO()
                     .status(HttpStatus.BAD_REQUEST)
@@ -180,9 +208,11 @@ public class SociedadService {
         return this.sociedadAnonimaRepository.save(newSociedad);
     }
 
-    private void manageNewStatusActions(Status newStatus, SociedadAnonima sociedadAnonima, CredentialsDTO credentialsDTO, String token, String sessionId)
+    private void manageNewStatusActions(Status newStatus, SociedadAnonima sociedadAnonima, CredentialsDTO credentialsDTO, String role, String token, String sessionId)
             throws GenericException {
+        List<VariableDTO> variables = new ArrayList<>();
         if (StatusEnum.MESA_ENTRADAS_APROBADO.name().equalsIgnoreCase(newStatus.getStatus())) {
+            this.validateRole(Role.MESA_ENTRADAS.name(), role);
             // generar expediente
             Expediente expediente = this.expedienteRepository.save(Expediente.Builder.anExpediente()
                             .sociedadAnonima(sociedadAnonima)
@@ -191,18 +221,34 @@ public class SociedadService {
             this.sociedadAnonimaRepository.save(sociedadAnonima);
 
             // actualizar tarea en bonita
-            this.bonitaApiService.updateTask(sociedadAnonima, newStatus.getStatus(), credentialsDTO, token, sessionId);
+            variables.add(new VariableDTO("sa_form_valido", "true"));
+            this.bonitaApiService.updateTask(sociedadAnonima, newStatus.getStatus(), credentialsDTO, variables, token, sessionId);
         } else if (StatusEnum.MESA_ENTRADAS_RECHAZADO.name().equalsIgnoreCase(newStatus.getStatus())) {
-            this.bonitaApiService.updateTask(sociedadAnonima, newStatus.getStatus(), credentialsDTO, token, sessionId);
+            this.validateRole(Role.MESA_ENTRADAS.name(), role);
+            variables.add(new VariableDTO("sa_form_valido", "false"));
+            this.bonitaApiService.updateTask(sociedadAnonima, newStatus.getStatus(), credentialsDTO, variables, token, sessionId);
         } else if (StatusEnum.LEGALES_APROBADO.name().equalsIgnoreCase(newStatus.getStatus())) {
+            this.validateRole(Role.LEGALES.name(), role);
             // estampillado
             String estampillado = this.estampilladoService.estampillar(sociedadAnonima.getExpediente(),
                     credentialsDTO);
             sociedadAnonima.setEstampillado(estampillado);
             this.sociedadAnonimaRepository.save(sociedadAnonima);
-            this.bonitaApiService.updateTask(sociedadAnonima, newStatus.getStatus(), credentialsDTO, token, sessionId);
+            variables.add(new VariableDTO("tramite_valido", "true"));
+            this.bonitaApiService.updateTask(sociedadAnonima, newStatus.getStatus(), credentialsDTO, variables, token, sessionId);
         } else if (StatusEnum.LEGALES_RECHAZADO.name().equalsIgnoreCase(newStatus.getStatus())) {
-            this.bonitaApiService.updateTask(sociedadAnonima, newStatus.getStatus(), credentialsDTO, token, sessionId);
+            this.validateRole(Role.LEGALES.name(), role);
+            variables.add(new VariableDTO("tramite_valido", "false"));
+            this.bonitaApiService.updateTask(sociedadAnonima, newStatus.getStatus(), credentialsDTO, variables, token, sessionId);
+        }
+    }
+
+    private void validateRole(String expectedRole, String actualRole) throws InvalidCredentialsException {
+        if (!expectedRole.equalsIgnoreCase(actualRole)) {
+            throw new InvalidCredentialsException(StatusCodeDTO.Builder.aStatusCodeDTO()
+                    .message("Invalid role")
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build());
         }
     }
 }

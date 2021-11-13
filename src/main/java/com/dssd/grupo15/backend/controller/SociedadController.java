@@ -46,10 +46,11 @@ public class SociedadController extends GenericController {
     public SociedadAnonima createSociedad(@RequestParam("estatuto") MultipartFile file,
                                           @RequestParam("sociedad_anonima") String sociedadAnonimaString,
                                           @RequestHeader(BONITA_TOKEN) String token,
+                                          @RequestHeader(ROLE) String role,
                                           @RequestHeader(SESSION_ID_COOKIE) String sessionId) throws GenericException {
         try {
             SociedadAnonimaDTO sociedadAnonimaDTO = SociedadMapper.mapFromJSONObject(new JSONObject(sociedadAnonimaString));
-            return this.sociedadService.createSociedad(sociedadAnonimaDTO, file, token, sessionId);
+            return this.sociedadService.createSociedad(sociedadAnonimaDTO, role, file, token, sessionId);
         } catch (JSONException e) {
             logger.warn("Error parsing JSON", e);
             throw new BadRequestException(StatusCodeDTO.Builder.aStatusCodeDTO()
@@ -66,7 +67,16 @@ public class SociedadController extends GenericController {
                                           @RequestHeader(BONITA_TOKEN) String token,
                                           @RequestHeader(SESSION_ID_COOKIE) String sessionId,
                                           @RequestBody CredentialsDTO credentialsDTO) throws GenericException {
-        return this.sociedadService.updateSociedadStatus(id, aprobado, credentialsDTO, token, sessionId);
+        return this.sociedadService.updateSociedadStatus(id, aprobado, credentialsDTO, role, token, sessionId);
+    }
+
+    @PostMapping("/api/sociedad/{id}/documentacion")
+    public SociedadAnonima generarDocumentacion(@PathVariable("id") Long id,
+                                          @RequestHeader(ROLE) String role,
+                                          @RequestHeader(BONITA_TOKEN) String token,
+                                          @RequestHeader(SESSION_ID_COOKIE) String sessionId,
+                                          @RequestBody CredentialsDTO credentialsDTO) throws GenericException {
+        return this.sociedadService.generarDocumentacion(id, credentialsDTO, role, token, sessionId);
     }
 
     @GetMapping("/sociedad/{id}")

@@ -6,6 +6,7 @@ target/
 
 ### FILES ###
 uploads/
+tokens/
 
 ### STS ###
 .apt_generated

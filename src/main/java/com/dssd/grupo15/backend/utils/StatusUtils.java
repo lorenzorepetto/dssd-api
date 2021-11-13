@@ -17,4 +17,12 @@ public class StatusUtils {
 
         return null;
     }
+
+    public static String getNextStatus(Status status) {
+        if (StatusEnum.LEGALES_APROBADO.name().equalsIgnoreCase(status.getStatus())) {
+            return StatusEnum.FINALIZADO.name();
+        }
+
+        return null;
+    }
 }

@@ -1,6 +1,8 @@
 package com.dssd.grupo15.backend.service;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -58,6 +60,13 @@ public class FilesStorageServiceImpl implements FilesStorageService {
                     .concat("/")
                     .concat(fileUrl);
             newFile.setUrl(url);
+
+//            java.io.File tmpFile = new java.io.File("src/main/resources/targetFile.tmp");
+//            try (OutputStream os = new FileOutputStream(tmpFile)) {
+//                os.write(file.getBytes());
+//            }
+//            GDriveService.test(tmpFile);
+
             return this.fileRepository.save(newFile);
         } catch (Exception e) {
             throw new FileStorageException(StatusCodeDTO.Builder.aStatusCodeDTO()
