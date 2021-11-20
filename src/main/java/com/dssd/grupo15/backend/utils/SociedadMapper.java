@@ -54,8 +54,7 @@ public class SociedadMapper {
     }
 
     private static ContinenteDTO getContinenteDTO(JSONObject continent) throws JSONException {
-        // return new ContinenteDTO(continent.getString("code"), continent.getString("name"));
-        return new ContinenteDTO(continent.getString("code"), "remover"); //TODO: remover
+        return new ContinenteDTO(continent.getString("code"), continent.getString("name"));
     }
 
     private static List<SocioDTO> getSociosDTO(JSONArray socios) throws JSONException {
