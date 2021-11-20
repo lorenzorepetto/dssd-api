@@ -1,6 +1,7 @@
 package com.dssd.grupo15.backend.service;
 
 import com.dssd.grupo15.backend.dto.metric.MetricasDTO;
+import com.dssd.grupo15.backend.dto.metric.PaisMetricaDTO;
 import com.dssd.grupo15.backend.model.Continente;
 import com.dssd.grupo15.backend.model.Pais;
 import com.dssd.grupo15.backend.model.SociedadAnonima;
@@ -41,8 +42,11 @@ public class MetricasService {
     public MetricasDTO getMetricas() {
         List<Continente> continentesConMasExportaciones = this.continenteRepository.continentesConMasExportacionesExceptoAmerica();
         List<Map<String, Object>> paisesConMasExportacionesMap = this.exportacionRepository.paisesConMasExportaciones();
-        List<Pais> paisesConMasExportaciones = paisesConMasExportacionesMap.stream()
-                .map(result -> this.paisRepository.findById(((BigInteger) result.get("pais_id")).longValue()).orElse(null))
+        List<PaisMetricaDTO> paisesConMasExportaciones = paisesConMasExportacionesMap.stream()
+                .map(result -> PaisMetricaDTO.Builder.aPaisMetricaDTO()
+                        .pais(this.paisRepository.findById(((BigInteger) result.get("pais_id")).longValue()).orElse(null))
+                        .count(((BigInteger) result.get("cant")).longValue())
+                        .build())
                 .collect(Collectors.toList());
 
         Map<String, Integer> statusMap = new HashMap<>();
@@ -62,7 +66,7 @@ public class MetricasService {
         return MetricasDTO.Builder.aMetricasDTO()
                 .continentesConExportaciones(this.continenteRepository.findAll())
                 .continentesMaxExportaciones(continentesConMasExportaciones)
-                .paisesMaxExportaciones(paisesConMasExportaciones.subList(0, 4))
+                .paisesMaxExportaciones(paisesConMasExportaciones.subList(0, 5))
                 .statusMap(statusMap)
                 .tiempoPromedioProcesos(average)
                 .build();

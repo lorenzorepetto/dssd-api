@@ -13,9 +13,9 @@ public interface ExportacionRepository extends JpaRepository<Exportacion, Long> 
 
     // paises a donde más se exporta
     @Query(nativeQuery = true,
-            value = "SELECT e.pais_id, p.name, p.code " +
+            value = "SELECT e.pais_id, p.name, p.code, COUNT(e.pais_id) as cant " +
                     "FROM exportaciones e " +
                     "INNER JOIN paises p ON e.pais_id = p.id " +
-                    "GROUP BY e.pais_id, p.name, p.code ORDER BY COUNT(e.pais_id) DESC LIMIT 5")
+                    "GROUP BY e.pais_id, p.name, p.code ORDER BY cant DESC LIMIT 5")
     List<Map<String, Object>> paisesConMasExportaciones();
 }

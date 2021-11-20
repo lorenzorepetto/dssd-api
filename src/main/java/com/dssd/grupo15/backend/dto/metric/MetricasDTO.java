@@ -7,18 +7,18 @@ import java.util.List;
 import java.util.Map;
 
 public class MetricasDTO {
-    private List<Pais> paisesMaxExportaciones;
+    private List<PaisMetricaDTO> paisesMaxExportaciones;
     private List<Continente> continentesMaxExportaciones;
     private List<Continente> continentesConExportaciones;
 
     private Map<String, Integer> statusMap;
     private double tiempoPromedioProcesos;
 
-    public List<Pais> getPaisesMaxExportaciones() {
+    public List<PaisMetricaDTO> getPaisesMaxExportaciones() {
         return paisesMaxExportaciones;
     }
 
-    public void setPaisesMaxExportaciones(List<Pais> paisesMaxExportaciones) {
+    public void setPaisesMaxExportaciones(List<PaisMetricaDTO> paisesMaxExportaciones) {
         this.paisesMaxExportaciones = paisesMaxExportaciones;
     }
 
@@ -65,7 +65,7 @@ public class MetricasDTO {
             return new Builder();
         }
 
-        public Builder paisesMaxExportaciones(List<Pais> paisesMaxExportaciones) {
+        public Builder paisesMaxExportaciones(List<PaisMetricaDTO> paisesMaxExportaciones) {
             metricasDTO.setPaisesMaxExportaciones(paisesMaxExportaciones);
             return this;
         }
