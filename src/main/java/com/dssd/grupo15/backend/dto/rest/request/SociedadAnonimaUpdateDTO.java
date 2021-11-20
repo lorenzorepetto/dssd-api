@@ -1,14 +1,20 @@
 package com.dssd.grupo15.backend.dto.rest.request;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
+
 import java.time.LocalDate;
 
 public class SociedadAnonimaUpdateDTO {
     private String nombre;
+    @JsonDeserialize(using = LocalDateDeserializer.class)
+    @JsonSerialize(using = LocalDateSerializer.class)
     private LocalDate fechaCreacion;
     private String domicilioLegal;
     private String domicilioReal;
     private String email;
-    private String username;
 
     public String getNombre() {
         return nombre;
@@ -48,13 +54,5 @@ public class SociedadAnonimaUpdateDTO {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 }
