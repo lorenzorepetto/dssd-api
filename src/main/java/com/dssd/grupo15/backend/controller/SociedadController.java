@@ -3,6 +3,7 @@ package com.dssd.grupo15.backend.controller;
 import com.dssd.grupo15.backend.dto.common.StatusCodeDTO;
 import com.dssd.grupo15.backend.dto.rest.request.CredentialsDTO;
 import com.dssd.grupo15.backend.dto.rest.request.SociedadAnonimaDTO;
+import com.dssd.grupo15.backend.dto.rest.request.UpdateSociedadDTO;
 import com.dssd.grupo15.backend.exception.BadRequestException;
 import com.dssd.grupo15.backend.exception.common.GenericException;
 import com.dssd.grupo15.backend.model.SociedadAnonima;
@@ -58,6 +59,16 @@ public class SociedadController extends GenericController {
                     .status(HttpStatus.BAD_REQUEST)
                     .build());
         }
+    }
+
+    @PutMapping("/api/sociedad/{id}")
+    public SociedadAnonima updateSociedad(@PathVariable("id") Long id,
+                                          @RequestHeader(ROLE) String role,
+                                          @RequestHeader(BONITA_TOKEN) String token,
+                                          @RequestHeader(SESSION_ID_COOKIE) String sessionId,
+                                          @RequestBody UpdateSociedadDTO updateSociedadDTO
+                                          ) throws GenericException {
+        return this.sociedadService.updateSociedad(id, updateSociedadDTO.getSociedadAnonima(), updateSociedadDTO.getCredentials(), role, token, sessionId);
     }
 
     @PutMapping("/api/sociedad/{id}/status")

@@ -4,6 +4,7 @@ import com.dssd.grupo15.backend.dto.common.StatusCodeDTO;
 import com.dssd.grupo15.backend.dto.rest.bonita.VariableDTO;
 import com.dssd.grupo15.backend.dto.rest.request.*;
 import com.dssd.grupo15.backend.exception.AlreadyExistsException;
+import com.dssd.grupo15.backend.exception.BadRequestException;
 import com.dssd.grupo15.backend.exception.InvalidCredentialsException;
 import com.dssd.grupo15.backend.exception.common.GenericException;
 import com.dssd.grupo15.backend.model.*;
@@ -144,6 +145,49 @@ public class SociedadService {
 
         File savedFile = this.filesStorageService.save(file, sociedadAnonimaDTO);
         return this.createAndSaveSociedad(sociedadAnonimaDTO, savedFile, processId);
+    }
+
+    @Transactional
+    public SociedadAnonima updateSociedad(Long id, SociedadAnonimaUpdateDTO sociedadAnonimaDTO, CredentialsDTO credentialsDTO, String role, String token, String sessionId) throws GenericException {
+        this.validateRole(Role.APODERADO.name(), role);
+        Optional<SociedadAnonima> sociedadAnonimaOptional = this.sociedadAnonimaRepository.findById(id);
+        if (sociedadAnonimaOptional.isEmpty()) {
+            throw new BadRequestException(StatusCodeDTO.Builder.aStatusCodeDTO()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .message(String.format("Sociedad with id %s does not exist.", id))
+                    .build());
+        }
+
+        SociedadAnonima sociedadAnonima = sociedadAnonimaOptional.get();
+
+        if (!sociedadAnonima.getNombre().equalsIgnoreCase(sociedadAnonimaDTO.getNombre())
+                && this.sociedadAnonimaRepository.findByNombre(sociedadAnonimaDTO.getNombre()).isPresent()) {
+            throw new AlreadyExistsException(StatusCodeDTO.Builder.aStatusCodeDTO()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .message(String.format("Sociedad with nombre %s already exists.", sociedadAnonimaDTO.getNombre()))
+                    .build());
+        }
+
+        // Actualizar en Bonita
+        List<VariableDTO> variables = List.of(
+                new VariableDTO("tramite_valido", "false"),
+                new VariableDTO("fecha_creacion", sociedadAnonimaDTO.getFechaCreacion().toString()),
+                new VariableDTO("nombre_sa", sociedadAnonimaDTO.getNombre()),
+                new VariableDTO("status", StatusEnum.NEW.name()),
+                new VariableDTO("email_apoderado", sociedadAnonimaDTO.getEmail()));
+        this.bonitaApiService.updateTask(sociedadAnonima, StatusEnum.NEW.name(), credentialsDTO, variables, token, sessionId);
+
+        sociedadAnonima.setNombre(sociedadAnonimaDTO.getNombre());
+        sociedadAnonima.setEmail(sociedadAnonimaDTO.getEmail());
+        sociedadAnonima.setDomicilioLegal(sociedadAnonimaDTO.getDomicilioLegal());
+        sociedadAnonima.setDomicilioReal(sociedadAnonimaDTO.getDomicilioReal());
+        sociedadAnonima.setFechaCreacion(sociedadAnonimaDTO.getFechaCreacion());
+        sociedadAnonima.getStatus().add(this.statusRepository.save(Status.Builder.aStatus()
+                .status(StatusEnum.NEW.name())
+                .dateCreated(LocalDateTime.now())
+                .sociedadAnonima(sociedadAnonima).build()));
+
+        return this.sociedadAnonimaRepository.save(sociedadAnonima);
     }
 
     private List<VariableDTO> getInitVariables(SociedadAnonimaDTO sociedadAnonimaDTO) {
