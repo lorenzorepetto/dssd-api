@@ -23,12 +23,15 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class BonitaApiService {
 
     @Value("${bonita.login.url}")
     private String LOGIN_URL;
+    @Value("${bonita.logout.url}")
+    private String LOGOUT_URL;
     @Value("${bonita.user.id.url}")
     private String USER_ID_URL;
     @Value("${bonita.user.role.url}")
@@ -256,5 +259,16 @@ public class BonitaApiService {
                     .message(String.format("Failed to retrieve info for process %s", processName))
                     .build());
         }
+    }
+
+    public Map<String, Object> logout(String token, String sessionId) {
+        HttpEntity<String> response = restTemplate.exchange(
+                LOGOUT_URL,
+                HttpMethod.GET,
+                BonitaApiUtils.getEntityWithHeaders(token, sessionId),
+                new ParameterizedTypeReference<>() {
+                });
+
+        return Map.of("ok", "true", "message", "Logged out");
     }
 }

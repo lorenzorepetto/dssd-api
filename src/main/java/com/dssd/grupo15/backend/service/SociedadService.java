@@ -69,7 +69,9 @@ public class SociedadService {
         if (Role.LEGALES.name().equalsIgnoreCase(role)) {
             return this.sociedadAnonimaRepository.findByStatus(StatusEnum.MESA_ENTRADAS_APROBADO.name());
         } else if (Role.MESA_ENTRADAS.name().equalsIgnoreCase(role)) {
-            return this.sociedadAnonimaRepository.findByStatus(StatusEnum.NEW.name());
+            List<SociedadAnonima> sociedadesAnonimas = this.sociedadAnonimaRepository.findByStatus(StatusEnum.NEW.name());
+            sociedadesAnonimas.addAll(this.sociedadAnonimaRepository.findByStatus(StatusEnum.LEGALES_APROBADO.name()));
+            return sociedadesAnonimas;
         } else {
             return this.sociedadAnonimaRepository.findByUsername(username);
         }
@@ -83,9 +85,11 @@ public class SociedadService {
     public SociedadAnonima generarDocumentacion(Long id, CredentialsDTO credentialsDTO, String role, String token, String sessionId) throws GenericException {
         this.validateRole(Role.MESA_ENTRADAS.name(), role);
         Optional<SociedadAnonima> sociedadAnonimaOptional = this.sociedadAnonimaRepository.findById(id);
-        //errores?
         if (sociedadAnonimaOptional.isEmpty()) {
-            return null;
+            throw new BadRequestException(StatusCodeDTO.Builder.aStatusCodeDTO()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .message(String.format("Sociedad with id %s does not exist.", id))
+                    .build());
         }
         SociedadAnonima sociedadAnonima = sociedadAnonimaOptional.get();
 
@@ -108,9 +112,11 @@ public class SociedadService {
     @Transactional
     public SociedadAnonima updateSociedadStatus(Long id, boolean aprobado, CredentialsDTO credentialsDTO, String role, String token, String sessionId) throws GenericException {
         Optional<SociedadAnonima> sociedadAnonimaOptional = this.sociedadAnonimaRepository.findById(id);
-        //errores?
         if (sociedadAnonimaOptional.isEmpty()) {
-            return null;
+            throw new BadRequestException(StatusCodeDTO.Builder.aStatusCodeDTO()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .message(String.format("Sociedad with id %s does not exist.", id))
+                    .build());
         }
 
         SociedadAnonima sociedadAnonima = sociedadAnonimaOptional.get();

@@ -12,6 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class GenericController {
 
+    protected static final String BONITA_TOKEN = "X-Bonita-API-Token";
+    protected static final String ROLE = "ROLE";
+    protected static final String SESSION_ID_COOKIE = "JSESSIONID";
+
     @ExceptionHandler(GenericException.class)
     public ResponseEntity<StatusCodeDTO> handleException(GenericException genericException) {
         return new ResponseEntity<>(genericException.getStatus(), genericException.getStatus().getStatus());

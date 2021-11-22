@@ -11,7 +11,8 @@ public class StatusUtils {
 
         //TODO: ver que pasa cuando se corrige el form
         if (StatusEnum.MESA_ENTRADAS_APROBADO.name().equalsIgnoreCase(status.getStatus())
-                || StatusEnum.MESA_ENTRADAS_RECHAZADO.name().equalsIgnoreCase(status.getStatus())) {
+                || StatusEnum.MESA_ENTRADAS_RECHAZADO.name().equalsIgnoreCase(status.getStatus())
+                || StatusEnum.LEGALES_RECHAZADO.name().equalsIgnoreCase(status.getStatus())) {
             return aprobado ? StatusEnum.LEGALES_APROBADO.name() : StatusEnum.LEGALES_RECHAZADO.name();
         }
 

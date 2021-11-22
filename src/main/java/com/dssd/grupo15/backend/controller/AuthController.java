@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 public class AuthController extends GenericController {
 
@@ -18,14 +20,17 @@ public class AuthController extends GenericController {
         this.bonitaApiService = bonitaApiService;
     }
 
-    @GetMapping("/ping")
-    public String ping() {
-        return "pong";
-    }
-
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
     public LoginResponseDTO login(@RequestBody CredentialsDTO credentialsDTO) throws InvalidCredentialsException {
         return this.bonitaApiService.login(credentialsDTO);
+    }
+
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.OK)
+    public Map<String, Object> logout(@RequestHeader(BONITA_TOKEN) String token,
+                                      @RequestHeader(SESSION_ID_COOKIE) String sessionId,
+                                      @RequestHeader(ROLE) String role) throws InvalidCredentialsException {
+        return this.bonitaApiService.logout(token, sessionId);
     }
 }

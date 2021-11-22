@@ -66,7 +66,7 @@ public class MetricasService {
         return MetricasDTO.Builder.aMetricasDTO()
                 .continentesConExportaciones(this.continenteRepository.findAll())
                 .continentesMaxExportaciones(continentesConMasExportaciones)
-                .paisesMaxExportaciones(paisesConMasExportaciones.subList(0, 5))
+                .paisesMaxExportaciones(paisesConMasExportaciones.size() > 4 ? paisesConMasExportaciones.subList(0, 5) : paisesConMasExportaciones)
                 .statusMap(statusMap)
                 .tiempoPromedioProcesos(average)
                 .build();

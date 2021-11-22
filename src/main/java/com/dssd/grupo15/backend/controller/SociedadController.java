@@ -24,9 +24,7 @@ import java.util.List;
 public class SociedadController extends GenericController {
 
     private final SociedadService sociedadService;
-    private static final String BONITA_TOKEN = "X-Bonita-API-Token";
-    private static final String ROLE = "ROLE";
-    private static final String SESSION_ID_COOKIE = "JSESSIONID";
+
 
     private static final Logger logger = LoggerFactory.getLogger(SociedadController.class);
 
