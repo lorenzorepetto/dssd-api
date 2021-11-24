@@ -272,6 +272,7 @@ public class SociedadService {
 
             // actualizar tarea en bonita
             variables.add(new VariableDTO("sa_form_valido", "true"));
+            variables.add(new VariableDTO("numero_expediente", expediente.getId().toString()));
             this.bonitaApiService.updateTask(sociedadAnonima, newStatus.getStatus(), credentialsDTO, variables, token, sessionId);
         } else if (StatusEnum.MESA_ENTRADAS_RECHAZADO.name().equalsIgnoreCase(newStatus.getStatus())) {
             this.validateRole(Role.MESA_ENTRADAS.name(), role);
