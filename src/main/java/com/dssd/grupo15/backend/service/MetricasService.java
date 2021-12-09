@@ -1,13 +1,17 @@
 package com.dssd.grupo15.backend.service;
 
+import com.dssd.grupo15.backend.dto.common.StatusCodeDTO;
 import com.dssd.grupo15.backend.dto.metric.MetricasDTO;
 import com.dssd.grupo15.backend.dto.metric.PaisMetricaDTO;
+import com.dssd.grupo15.backend.exception.InvalidCredentialsException;
 import com.dssd.grupo15.backend.model.Continente;
 import com.dssd.grupo15.backend.model.Pais;
 import com.dssd.grupo15.backend.model.SociedadAnonima;
+import com.dssd.grupo15.backend.model.enums.Role;
 import com.dssd.grupo15.backend.model.enums.StatusEnum;
 import com.dssd.grupo15.backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +43,13 @@ public class MetricasService {
     }
 
     @Transactional
-    public MetricasDTO getMetricas() {
+    public MetricasDTO getMetricas(String role) throws InvalidCredentialsException {
+        if (!Role.GERENCIA.name().equalsIgnoreCase(role)) {
+            throw new InvalidCredentialsException(StatusCodeDTO.Builder.aStatusCodeDTO()
+                    .message("Invalid role")
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build());
+        }
         List<Continente> continentesConMasExportaciones = this.continenteRepository.continentesConMasExportacionesExceptoAmerica();
         List<Map<String, Object>> paisesConMasExportacionesMap = this.exportacionRepository.paisesConMasExportaciones();
         List<PaisMetricaDTO> paisesConMasExportaciones = paisesConMasExportacionesMap.stream()

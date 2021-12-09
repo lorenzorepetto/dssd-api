@@ -26,7 +26,7 @@ public class AuthController extends GenericController {
         return this.bonitaApiService.login(credentialsDTO);
     }
 
-    @PostMapping("/logout")
+    @PostMapping("/api/logout")
     @ResponseStatus(HttpStatus.OK)
     public Map<String, Object> logout(@RequestHeader(BONITA_TOKEN) String token,
                                       @RequestHeader(SESSION_ID_COOKIE) String sessionId,

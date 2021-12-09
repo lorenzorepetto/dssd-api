@@ -54,7 +54,7 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 
             Files.copy(file.getInputStream(), this.root.resolve(fileUrl));
             File newFile = new File();
-            newFile.setName(file.getOriginalFilename());
+            newFile.setName(fileUrl);
             String url = MvcUriComponentsBuilder.fromController(SociedadController.class).build().toString()
                     .concat(root.toString())
                     .concat("/")

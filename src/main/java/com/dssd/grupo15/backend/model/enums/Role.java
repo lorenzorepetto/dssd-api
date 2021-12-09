@@ -3,7 +3,8 @@ package com.dssd.grupo15.backend.model.enums;
 public enum Role {
     APODERADO("1"),
     MESA_ENTRADAS("2"),
-    LEGALES("3");
+    LEGALES("3"),
+    GERENCIA("4");
 
     private final String roleId;
 

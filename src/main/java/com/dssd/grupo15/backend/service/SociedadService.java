@@ -67,7 +67,9 @@ public class SociedadService {
             return new ArrayList<>();
         }
         if (Role.LEGALES.name().equalsIgnoreCase(role)) {
-            return this.sociedadAnonimaRepository.findByStatus(StatusEnum.MESA_ENTRADAS_APROBADO.name());
+            List<SociedadAnonima> sociedadesAnonimas = this.sociedadAnonimaRepository.findByStatus(StatusEnum.MESA_ENTRADAS_APROBADO.name());
+            sociedadesAnonimas.addAll(this.sociedadAnonimaRepository.findByStatus(StatusEnum.LEGALES_RECHAZADO.name()));
+            return sociedadesAnonimas;
         } else if (Role.MESA_ENTRADAS.name().equalsIgnoreCase(role)) {
             List<SociedadAnonima> sociedadesAnonimas = this.sociedadAnonimaRepository.findByStatus(StatusEnum.NEW.name());
             sociedadesAnonimas.addAll(this.sociedadAnonimaRepository.findByStatus(StatusEnum.LEGALES_APROBADO.name()));
